@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import traceback
 from llm_adapter import LLM_Adapter
 
 model_dir="/data/usr/jy/Langchain-Chatchat/webui_pages/fine_tune/final_model/"
@@ -24,13 +25,11 @@ async def echo(websocket, path):
         async for message in websocket:
             try:
                 # 尝试解析JSON字符串
-                parsed_json = json.loads(message)
-                print(parsed_json)
-                text=parsed_json["text"]
-                print("收到：", text)
-                response=model.predict(text)
-                print(response)
-                response_message = json.dumps({"text": "echo " + response})
+                message_json = json.loads(message)
+                print("message_json", message_json)
+                response=model.predict(message_json)
+                print("response", response)
+                response_message = json.dumps({"text": response})
             except json.JSONDecodeError:
                 # 如果解析失败，打印原始字符串ß
                 print("解析失败：", message)
@@ -42,6 +41,7 @@ async def echo(websocket, path):
     except Exception as e:
         # 处理其他可能的异常
         print("发生错误：", e)
+        traceback.print_exc()
     finally:
         # 取消心跳发送任务
         ping_task.cancel()

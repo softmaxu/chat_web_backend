@@ -25,14 +25,21 @@ class LLM_Adapter:
     def _gen_chat_msg(self, role, content):
         return {"role": role, "content": content}
     
-    def _convert_format(self, message):
-        messages=[]
-        if (type(message) is str):
-            messages.append(self._gen_chat_msg("system",""))
-            messages.append(self._gen_chat_msg("user","今天是几号"))
-            messages.append(self._gen_chat_msg("assistant","今天是3月10日"))
-            messages.append(self._gen_chat_msg("user",message))
-        return messages
+    def _convert_format(self, messages):
+        res=[]
+        if (type(messages) is str):
+            res.append(self._gen_chat_msg("system",""))
+            res.append(self._gen_chat_msg("user","今天是几号"))
+            res.append(self._gen_chat_msg("assistant","今天是3月10日"))
+            res.append(self._gen_chat_msg("user",messages))
+        if (type(messages) is list):
+            res.append(self._gen_chat_msg("system",""))
+            for m in messages:
+                if m["type"]=="sent":
+                    res.append(self._gen_chat_msg("user",m["text"]))
+                elif m["type"]=="received":
+                    res.append(self._gen_chat_msg("assistant",m["text"]))
+        return res
         
 
 # 微调后的模型路径
