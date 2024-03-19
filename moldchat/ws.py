@@ -6,7 +6,9 @@ from llm_adapter import LLM_Adapter
 
 model_dir="/data/usr/jy/Langchain-Chatchat/webui_pages/fine_tune/final_model/"
 model_name="user_"+"模型2401"
-model=LLM_Adapter(model_dir, model_name)
+system_msg="你是一个模具领域的AI助手MoldGPT，请根据上下文详细回答问题。"
+rag_prompt="###请根据下列信息回答问题：@@@{rag_docs}###\n"
+model=LLM_Adapter(model_dir, model_name, system_msg, rag_prompt)
 
 async def send_ping(websocket):
     while True:
@@ -27,15 +29,15 @@ async def echo(websocket, path):
                 # 尝试解析JSON字符串
                 message_json = json.loads(message)
                 print("message_json", message_json)
-                response=model.predict(message_json)
-                print("response", response)
-                response_message = json.dumps({"text": response})
+                for response in model.predict(message_json):
+                    print("response", response)
+                    response_message = json.dumps({"text": response})
+                    # 发送响应消息回客户端
+                    await websocket.send(response_message)
             except json.JSONDecodeError:
                 # 如果解析失败，打印原始字符串ß
                 print("解析失败：", message)
                 response_message = "echo " + message
-            # 发送响应消息回客户端
-            await websocket.send(response_message)
     except websockets.ConnectionClosedError as e:
         print("连接关闭：", e)
     except Exception as e:
