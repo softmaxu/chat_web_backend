@@ -84,12 +84,12 @@ class LLM_Adapter:
         if use_RAG:
             query=messages[-1]["content"]
             rag_docs=self.rag.query(query)[0].page_content
-            rag_to_user="在知识库中检索到以下内容：\n\n"+rag_docs
+            rag_to_user="在知识库中检索到以下内容：\r\n"+rag_docs
             yield rag_to_user
             rag_prompt=self.rag_prompt.format(rag_docs=rag_docs)
             messages.insert(-1,self._gen_chat_msg("assistant",rag_prompt))
             logging.info(messages[-2:])
-        yield self.model.chat(self.tokenizer, messages)
+        yield self.model.chat(self.tokenizer, messages, stream=True)
     
     def _gen_chat_msg(self, role, content):
         return {"role": role, "content": content}
@@ -111,10 +111,5 @@ class LLM_Adapter:
         return res
         
 
-# 微调后的模型路径
-# model_dir = '/data/usr/jy/Baichuan2/fine-tune/mymodel/'
-# # 微调后的模型名
-# model_name = 'bc2_7b_chat_qav2_e10'
 
-# model.generation_config = GenerationConfig.from_pretrained("baichuan-inc/Baichuan2-7B-Chat")
 
