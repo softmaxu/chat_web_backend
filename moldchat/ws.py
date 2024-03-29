@@ -28,14 +28,18 @@ async def echo(websocket, path):
             try:
                 # 尝试解析JSON字符串
                 message_json = json.loads(message)
-                print("message_json", message_json)
+                # print("message_json", message_json)
+                position = 0
+                await websocket.send(json.dumps({"text": "","operation":"syn"}))
                 for response in model.predict(message_json):
-                    print("response", response)
-                    response_message = json.dumps({"text": response})
+                    sinppet = response[position:]
+                    print(sinppet, end='|', flush=True)
+                    position = len(response)
+                    response_message = json.dumps({"text": sinppet})
                     # 发送响应消息回客户端
                     await websocket.send(response_message)
             except json.JSONDecodeError:
-                # 如果解析失败，打印原始字符串ß
+                # 如果解析失败，打印原始字符串
                 print("解析失败：", message)
                 response_message = "echo " + message
     except websockets.ConnectionClosedError as e:
