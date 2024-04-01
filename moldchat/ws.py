@@ -31,12 +31,15 @@ async def echo(websocket, path):
                 # print("message_json", message_json)
                 position = 0
                 await websocket.send(json.dumps({"text": "","operation":"syn"}))
-                for response in model.predict(message_json):
+                rag_to_user, llm_stream_output = model.predict(message_json)
+                if rag_to_user:
+                    await websocket.send(json.dumps({"text": rag_to_user}))
+                    await websocket.send(json.dumps({"text": "","operation":"syn"}))
+                for response in llm_stream_output:
                     sinppet = response[position:]
-                    print(sinppet, end='|', flush=True)
+                    # print(sinppet, end='|', flush=True)
                     position = len(response)
                     response_message = json.dumps({"text": sinppet})
-                    # 发送响应消息回客户端
                     await websocket.send(response_message)
             except json.JSONDecodeError:
                 # 如果解析失败，打印原始字符串
