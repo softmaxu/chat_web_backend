@@ -6,7 +6,7 @@ from llm_adapter import LLM_Adapter
 
 model_dir="/data/usr/jy/Langchain-Chatchat/webui_pages/fine_tune/final_model/"
 model_name="user_"+"模型2401"
-system_msg="你是一个模具领域的AI助手MoldGPT，请根据上下文详细回答问题。"
+system_msg="使用Markdown格式回答问题"
 rag_prompt="###请根据下列信息回答问题：@@@{rag_docs}###\n"
 model=LLM_Adapter(model_dir, model_name, system_msg, rag_prompt)
 
