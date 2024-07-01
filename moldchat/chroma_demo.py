@@ -15,7 +15,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
 docs = text_splitter.split_documents(documents)
 
 # create the open-source embedding function
-embedding_function = SentenceTransformerEmbeddings(model_name="/data/usr/jy/asset/m3e-base")
+embedding_function = SentenceTransformerEmbeddings(model_name="/data/usr/jy/asset/tokenizer/m3e-base")
 
 # load it into Chroma
 db = Chroma.from_documents(docs, embedding_function, persist_directory="./chroma_db")

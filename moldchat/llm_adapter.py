@@ -25,7 +25,7 @@ time_str=str(int(time.time()))
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RAG_Chroma:
-    def __init__(self, path="./chroma_db", embedding_path="/data/usr/jy/asset/m3e-base") -> None:
+    def __init__(self, path="./chroma_db", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
         self.path=path
         self.embedding_path=embedding_path
 
