@@ -36,7 +36,7 @@ class RAG_Chroma:
     def create(self, file_path:str="yeya-text12456.txt", chunk_size=500, chunk_overlap=50):
         loader = TextLoader(file_path)
         documents = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n","，",",",":","：",".","。",";","；"])
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n",":","：",".","。",";","；"])
         docs = text_splitter.split_documents(documents)
         self.db = Chroma.from_documents(docs, self.embedding_function, persist_directory=self.db_path)
         self.db.persist()
@@ -54,14 +54,6 @@ class RAG_Chroma:
         else:
             print(f"数据库目录 {self.db_path} 不存在。")
         return False
-
-# class LangchainAdapter:
-#     def __init__(self, model_id, max_new_tokens) -> None:
-#         self.model_id=model_id
-#         self.tokenizer=AutoTokenizer.from_pretrained(model_id,trust_remote_code=True)
-#         self.model=AutoModelForCausalLM.from_pretrained(model_id)
-#         self.pipe=pipeline("text-generation", model=self.model, tokenizer=self.tokenizer, max_new_tokens=max_new_tokens)
-#         self.hf=HuggingFacePipeline(pipeline=self.pipe)
 
 class LLM_Adapter:
     def __init__(self, model_dir, model_name, system_msg, rag_prompt) -> None:
