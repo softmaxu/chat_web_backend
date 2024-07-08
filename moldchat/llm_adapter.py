@@ -25,17 +25,21 @@ time_str=str(int(time.time()))
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RAG_Chroma:
-    def __init__(self, path="./chroma_db/yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
-        self.path=path
-        self.embedding_path=embedding_path
+    def __init__(self, db_path="./chroma_db/yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
+        self.db_path=db_path
+        self.embedding_function = SentenceTransformerEmbeddings (model_name = embedding_path)
+        if not os.path.exists(self.db_path):
+            self.create()
+        else:
+            self.db=Chroma(persist_directory=self.db_path, embedding_function = self.embedding_function)
 
-    def create(self, path:str="yeya-text12456.txt", chunk_size=500, chunk_overlap=50):
-        loader = TextLoader(path)
+    def create(self, file_path:str="yeya-text12456.txt", chunk_size=500, chunk_overlap=50):
+        loader = TextLoader(file_path)
         documents = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n","，",",",":","：",".","。",";","；"])
         docs = text_splitter.split_documents(documents)
-        embedding_function = SentenceTransformerEmbeddings(model_name=self.embedding_path)
-        self.db = Chroma.from_documents(docs, embedding_function)
+        self.db = Chroma.from_documents(docs, self.embedding_function, persist_directory=self.db_path)
+        self.db.persist()
 
     def query(self, query:str):
         docs = self.db.similarity_search(query)
@@ -44,11 +48,11 @@ class RAG_Chroma:
     def delete(self):
         if os.path.exists(self):
             # 使用shutil.rmtree删除目录及其所有内容
-            shutil.rmtree(self.path)
-            print(f"数据库目录 {self.path} 已被删除。")
+            shutil.rmtree(self.db_path)
+            print(f"数据库目录 {self.db_path} 已被删除。")
             return True
         else:
-            print(f"数据库目录 {self.path} 不存在。")
+            print(f"数据库目录 {self.db_path} 不存在。")
         return False
 
 # class LangchainAdapter:
@@ -72,7 +76,6 @@ class LLM_Adapter:
         self.system_msg=system_msg
         self.rag_prompt=rag_prompt
         self.rag=RAG_Chroma()
-        self.rag.create()
         
     
     def predict(self, message):
