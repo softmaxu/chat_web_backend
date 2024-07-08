@@ -25,11 +25,11 @@ time_str=str(int(time.time()))
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RAG_Chroma:
-    def __init__(self, path="./chroma_db", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
+    def __init__(self, path="./chroma_db/yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
         self.path=path
         self.embedding_path=embedding_path
 
-    def create(self, path:str="all.txt", chunk_size=500, chunk_overlap=50):
+    def create(self, path:str="yeya-text12456.txt", chunk_size=500, chunk_overlap=50):
         loader = TextLoader(path)
         documents = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
