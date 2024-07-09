@@ -41,8 +41,8 @@ class RAG_Chroma:
         self.db = Chroma.from_documents(docs, self.embedding_function, persist_directory=self.db_path)
         self.db.persist()
 
-    def query(self, query:str):
-        docs = self.db.similarity_search(query)
+    def query(self, query:str, top_k=4):
+        docs = self.db.similarity_search(query, k=top_k)
         return docs
     
     def delete(self):
