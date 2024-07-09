@@ -83,6 +83,7 @@ class LLM_Adapter:
             rag_docs=self.rag.query(query)[0].page_content
             rag_to_user="在知识库中检索到以下内容：\r\n"+rag_docs
             rag_prompt=self.rag_prompt.format(rag_docs=rag_docs)
+            print(rag_prompt)
             messages.insert(-1,self._gen_chat_msg("assistant",rag_prompt))
             logging.info(messages[-2:])
         return rag_to_user, self.model.chat(self.tokenizer, messages, stream=True)
