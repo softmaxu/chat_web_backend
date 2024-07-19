@@ -11,7 +11,7 @@ loader = TextLoader("all.txt")
 documents = loader.load()
 
 # split it into chunks
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=0)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=30)
 docs = text_splitter.split_documents(documents)
 
 # create the open-source embedding function

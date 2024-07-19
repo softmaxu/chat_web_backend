@@ -62,9 +62,11 @@ class LLM_Adapter:
         self.model_path=os.path.join(model_dir,model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, device_map="cuda:0", 
                               trust_remote_code=True, torch_dtype=torch.float16, )
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path, device_map="cuda:0", 
+        # 如果不量化，在这里填上device_map
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_path, 
                               trust_remote_code=True, torch_dtype=torch.float16,)
         self.model.generation_config = GenerationConfig.from_pretrained(self.model_path)
+        self.model = self.model.quantize(8).cuda()  # 使用量化删掉device_map
         self.system_msg=system_msg
         self.rag_prompt=rag_prompt
         self.rag=RAG_Chroma()

@@ -1,9 +1,12 @@
-package edu.zjunb.llm.yeya;
+package edu.zjunb.llm.yeya.controller;
+
+import edu.zjunb.llm.yeya.service.FileProcessingService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,12 +16,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api")
 public class FileUploadController {
 
     private static final String UPLOAD_DIR = "uploads/";
+
+    @Autowired
+    private FileProcessingService fileProcessingService;
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> uploadFiles(@RequestParam("files") MultipartFile[] files) {
@@ -41,15 +49,20 @@ public class FileUploadController {
                 if (file.isEmpty()) {
                     continue;
                 }
-
                 // Save each file locally
+                LocalDateTime now = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
+                String formattedNow = now.format(formatter);
                 byte[] bytes = file.getBytes();
-                Path path = Paths.get(UPLOAD_DIR + file.getOriginalFilename());
+                String fileName=formattedNow+"_"+file.getOriginalFilename();
+                Path path = Paths.get(UPLOAD_DIR + fileName);
                 Files.write(path, bytes);
+                // 异步处理文件
+                fileProcessingService.processFileAsync(path.toAbsolutePath().toString());
 
                 // Collect file details
                 Map<String, Object> fileDetail = new HashMap<>();
-                fileDetail.put("fileName", file.getOriginalFilename());
+                fileDetail.put("fileName", fileName);
                 fileDetail.put("fileSize", file.getSize());
                 // fileDetail.put("fileUri", path.toUri().toString());
                 fileDetails.add(fileDetail);
