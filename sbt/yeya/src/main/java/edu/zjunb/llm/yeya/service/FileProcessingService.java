@@ -18,7 +18,7 @@ public class FileProcessingService {
 
     @Async
     public void processFileAsync(String filePath) {
-        String url = "http://localhost:5000/process_file";
+        String url = "http://localhost:5000/process/file/extract";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         String jsonRequest = "{\"file_path\":\"" + filePath + "\"}";
