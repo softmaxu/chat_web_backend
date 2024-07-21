@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from tool.process_file import DocumentParser, TextCleaner
 from pathlib import Path
 import os
+from llm.llm_adapter import RAG_Chroma
 
 app = Flask(__name__)
 

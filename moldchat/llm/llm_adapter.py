@@ -6,7 +6,7 @@ from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 import json,string,time,os,re
 import shutil
 import numpy as np
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_community.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddings,
 )
@@ -33,8 +33,11 @@ class RAG_Chroma:
         else:
             self.db=Chroma(persist_directory=self.db_path, embedding_function = self.embedding_function)
 
-    def create(self, file_path:str="yeya-text12456.txt", chunk_size=500, chunk_overlap=50):
-        loader = TextLoader(file_path)
+    def create(self, file_path:str="yeya-text12456.txt", is_file_path_dir=False, chunk_size=500, chunk_overlap=50):
+        if is_file_path_dir:
+            loader = DirectoryLoader(file_path, glob="*")
+        else:
+            loader = TextLoader(file_path)
         documents = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n",":","：",".","。",";","；"])
         docs = text_splitter.split_documents(documents)
