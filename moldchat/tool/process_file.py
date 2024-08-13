@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import shutil
 from PyPDF2 import PdfReader
 from docx import Document
 from pptx import Presentation
@@ -99,6 +100,24 @@ class TextCleaner:
         converter = opencc.OpenCC('t2s')
         simplified_text = converter.convert(text)
         return simplified_text
+    
+class FileManager:
+    def move_file(self, file_name, src_path, dst_path, extensions:list=None):
+        # print(f"Moving {file_name} from {src_path} to {dst_path}")
+        if not extensions:
+            src_file = os.path.join(src_path, file_name)
+            dst_file = os.path.join(dst_path, file_name)
+            shutil.move(src_file, dst_file)
+        else:
+            base_name = os.path.splitext(file_name)[0]
+            for ext in extensions:
+                src_ext_file = os.path.join(src_path, base_name + ext)
+                dst_ext_file = os.path.join(dst_path, base_name + ext)
+                if os.path.exists(src_ext_file):
+                    shutil.move(src_ext_file, dst_ext_file)
+    def move_files(self, file_names, src_path, dst_path, extensions:list=None):
+        for file_name in file_names:
+            self.move_file(file_name, src_path, dst_path, extensions)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -114,7 +133,7 @@ if __name__ == "__main__":
         parser = DocumentParser(file_path)
         text = parser.extract_text()
         print(f"Extracted text from {file_path}:\n")
-        print(text)
+        # print(text)
     except ValueError as e:
         print(e)
         sys.exit(1)

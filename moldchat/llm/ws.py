@@ -10,7 +10,8 @@ model_dir = "/data/usr/jy/asset/modelscope/hub/baichuan-inc"
 model_name = "Baichuan2-7B-Chat"
 system_msg="使用Markdown格式回答问题"
 rag_prompt="###请根据下列信息回答问题：@@@{rag_docs}###\n"
-model=LLM_Adapter(model_dir, model_name, system_msg, rag_prompt)
+rag_db_name="test3"
+model=LLM_Adapter(model_dir, model_name, system_msg, rag_prompt, rag_db_name)
 
 async def send_ping(websocket):
     while True:

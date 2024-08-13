@@ -25,22 +25,29 @@ time_str=str(int(time.time()))
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RAG_Chroma:
-    def __init__(self, db_path="./chroma_db/yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
-        self.db_path=db_path
+    def __init__(self, db_name="yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
+        self.db_path="./chroma_db/"+db_name
         self.embedding_function = SentenceTransformerEmbeddings (model_name = embedding_path)
         if not os.path.exists(self.db_path):
-            self.create()
-        else:
             self.db=Chroma(persist_directory=self.db_path, embedding_function = self.embedding_function)
-
-    def create(self, file_path:str="yeya-text12456.txt", is_file_path_dir=False, chunk_size=500, chunk_overlap=50):
+            
+    def _get_loader(self, file_path:str="yeya-text12456.txt", is_file_path_dir=False):
         if is_file_path_dir:
             loader = DirectoryLoader(file_path, glob="*")
         else:
             loader = TextLoader(file_path)
-        documents = loader.load()
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n",":","：",".","。",";","；"])
-        docs = text_splitter.split_documents(documents)
+        return loader
+    
+    def _get_documents(self, loader, chunk_size, chunk_overlap, separators=["\n\n",":","：",".","。",";","；"]):
+        docs = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=separators)
+        docs = text_splitter.split_documents(docs)
+        return docs
+
+    def create(self, file_path, is_file_path_dir=False, chunk_size=300, chunk_overlap=30):
+        print("create file_path", file_path)
+        loader=self._get_loader(file_path, is_file_path_dir)
+        docs=self._get_documents(loader, chunk_size, chunk_overlap)
         self.db = Chroma.from_documents(docs, self.embedding_function, persist_directory=self.db_path)
         self.db.persist()
 
@@ -48,7 +55,20 @@ class RAG_Chroma:
         docs = self.db.similarity_search(query, k=top_k)
         return docs
     
-    def delete(self):
+    def insert(self, file_path, is_file_path_dir=False, chunk_size=300, chunk_overlap=30):
+        loader=self._get_loader(file_path, is_file_path_dir)
+        docs=self._get_documents(loader, chunk_size, chunk_overlap)
+        self.db.add_documents(docs)
+        
+    def select(self, keyword:str, limit : int=None):
+        if keyword:
+            res = self.db.get(where_document={"$contains": keyword}, limit=limit)
+        else:
+            res = self.db.get(limit=limit)
+        return res
+            
+        
+    def drop(self):
         if os.path.exists(self):
             # 使用shutil.rmtree删除目录及其所有内容
             shutil.rmtree(self.db_path)
@@ -59,20 +79,20 @@ class RAG_Chroma:
         return False
 
 class LLM_Adapter:
-    def __init__(self, model_dir, model_name, system_msg, rag_prompt) -> None:
+    def __init__(self, model_dir, model_name, system_msg, rag_prompt, rag_db_name="yeya") -> None:
         self.model_dir=model_dir
         self.model_name=model_name
         self.model_path=os.path.join(model_dir,model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, device_map="cuda:0", 
                               trust_remote_code=True, torch_dtype=torch.float16, )
         # 如果不量化，在这里填上device_map
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path, 
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_path, device_map="cuda:0",
                               trust_remote_code=True, torch_dtype=torch.float16,)
         self.model.generation_config = GenerationConfig.from_pretrained(self.model_path)
         self.model = self.model.quantize(8).cuda()  # 使用量化删掉device_map
         self.system_msg=system_msg
         self.rag_prompt=rag_prompt
-        self.rag=RAG_Chroma()
+        self.rag=RAG_Chroma(db_name=rag_db_name)
         
     
     def predict(self, message):
