@@ -2,7 +2,7 @@ import os
 import sys
 import re
 import shutil
-from PyPDF2 import PdfReader
+import fitz  # PyMuPDF
 from docx import Document
 from pptx import Presentation
 import opencc
@@ -29,10 +29,11 @@ class DocumentParser:
             return file.read()
 
     def extract_text_from_pdf(self):
-        reader = PdfReader(self.file_path)
+        doc = fitz.open(self.file_path)
         text = ""
-        for page in reader.pages:
-            text += page.extract_text()
+        for page in doc:
+            text += page.get_text()
+        doc.close()
         return text
 
     def extract_text_from_docx(self):
