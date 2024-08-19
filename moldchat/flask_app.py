@@ -71,14 +71,31 @@ def insert_rag():
     
 @app.route('/rag/select', methods=['GET'])
 def get_texts_rag():
-    data = request.get_json()
-    db_name = data.get('db_name')
-    keyword = data.get("keyword", None)
-    limit = data.get("limit", None)
+    print(request)
+    print(request.args)
+    db_name = request.args.get('db_name')
+    keyword = request.args.get("keyword")
+    limit = request.args.get("limit", default=10, type=int)
     db_path = str(project_path / Path("chroma_db") / db_name)
     rag_chroma = RAG_Chroma(db_path)
     results = rag_chroma.select(keyword=keyword, limit=limit)
+    print("results", results)
     return results
+
+@app.route('/rag/getDbList', methods=['GET'])
+def get_rag_db_list():
+    db_directory = str(project_path / Path("chroma_db"))
+    directories_with_subdirs = []
+    for root, dirs, files in os.walk(db_directory):
+        # 只检查当前目录下的子目录，而不是递归子目录
+        if root == db_directory:
+            for dir_name in dirs:
+                subdir_path = os.path.join(root, dir_name)
+                # 如果子目录下存在其他目录，则添加到结果列表中
+                if any(os.path.isdir(os.path.join(subdir_path, sub_dir)) for sub_dir in os.listdir(subdir_path)):
+                    directories_with_subdirs.append(dir_name)
+            break  # 只检查db_directory下的直接子目录
+    return jsonify(directories_with_subdirs)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

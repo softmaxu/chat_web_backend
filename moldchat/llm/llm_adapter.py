@@ -28,7 +28,7 @@ class RAG_Chroma:
     def __init__(self, db_path="yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
         self.db_path=db_path
         self.embedding_function = SentenceTransformerEmbeddings (model_name = embedding_path)
-        if not os.path.exists(self.db_path):
+        if os.path.exists(self.db_path):
             self.db=Chroma(persist_directory=self.db_path, embedding_function = self.embedding_function)
             
     def _get_loader(self, file_path:str="yeya-text12456.txt", is_file_path_dir=False):
