@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
+app.config['PROPAGATE_EXCEPTIONS'] = False
 project_path=Path("/data/usr/jy/chat_web/back/moldchat")
 uploaded_file_path=Path("/data/usr/jy/chat_web/back/sbt/yeya/uploads")
 
@@ -31,7 +32,7 @@ def create_rag():
     data = request.get_json()
     db_name = data.get('name')
     db_path = str(project_path / Path("chroma_db") / db_name)
-    raw_file_path =str(project_path / Path("chroma_db") / Path("_raw_file") / db_name)
+    raw_file_path =str(project_path / Path("_raw_file") / db_name)
     file_names_dict=data.get("files")
     file_names=[f["fileName"] for f in file_names_dict]
     file_manager=FileManager()

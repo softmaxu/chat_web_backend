@@ -25,8 +25,8 @@ time_str=str(int(time.time()))
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class RAG_Chroma:
-    def __init__(self, db_name="yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
-        self.db_path="./chroma_db/"+db_name
+    def __init__(self, db_path="yeya", embedding_path="/data/usr/jy/asset/tokenizer/m3e-base") -> None:
+        self.db_path=db_path
         self.embedding_function = SentenceTransformerEmbeddings (model_name = embedding_path)
         if not os.path.exists(self.db_path):
             self.db=Chroma(persist_directory=self.db_path, embedding_function = self.embedding_function)
