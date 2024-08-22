@@ -38,7 +38,7 @@ class RAG_Chroma:
             loader = TextLoader(file_path)
         return loader
     
-    def _get_documents(self, loader, chunk_size, chunk_overlap, separators=["\n\n",":","：",".","。",";","；"]):
+    def _get_documents(self, loader, chunk_size, chunk_overlap, separators=["\n\n","\n","。","；"]):
         docs = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=separators)
         docs = text_splitter.split_documents(docs)
