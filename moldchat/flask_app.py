@@ -8,8 +8,9 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 app.config['PROPAGATE_EXCEPTIONS'] = False
-project_path=Path("/data/usr/jy/chat_web/back/moldchat")
-uploaded_file_path=Path("/data/usr/jy/chat_web/back/sbt/yeya/uploads")
+project_path = Path("/data/usr/jy/chat_web/back/moldchat")
+uploaded_file_path = Path("/data/usr/jy/chat_web/back/sbt/yeya/uploads")
+
 
 @app.route('/process/file/extract', methods=['POST'])
 def process_file():
@@ -21,28 +22,32 @@ def process_file():
     document_parser = DocumentParser(file_path)
     document_parser_out_path = document_parser.extract_text()["file"]
     text_cleaner = TextCleaner()
-    file_name=Path(document_parser_out_path).name
-    text_cleaner_out_path = str(Path(document_parser_out_path).parent / "RAG_file" / file_name)
+    file_name = Path(document_parser_out_path).name
+    text_cleaner_out_path = str(
+        Path(document_parser_out_path).parent / "RAG_file" / file_name)
     text_cleaner.clean(document_parser_out_path, text_cleaner_out_path)
     result = f"Processing file"
     return jsonify({"message": result, "file": document_parser_out_path})
+
 
 @app.route('/rag/create', methods=['POST'])
 def create_rag():
     data = request.get_json()
     db_name = data.get('name')
     db_path = str(project_path / Path("chroma_db") / db_name)
-    raw_file_path =str(project_path / Path("_raw_file") / db_name)
-    file_names_dict=data.get("files")
-    file_names=[f["fileName"] for f in file_names_dict]
-    file_manager=FileManager()
+    raw_file_path = str(project_path / Path("_raw_file") / db_name)
+    file_names_dict = data.get("files")
+    file_names = [f["fileName"] for f in file_names_dict]
+    file_manager = FileManager()
     if not os.path.exists(raw_file_path):
         os.makedirs(raw_file_path)
-    file_manager.move_files(file_names, str(uploaded_file_path), raw_file_path, [".txt"])
+    file_manager.move_files(file_names, str(
+        uploaded_file_path), raw_file_path, [".txt"])
     rag_chroma = RAG_Chroma(db_path)
     rag_chroma.create(raw_file_path, is_file_path_dir=True)
     result = f"RAG Chroma created"
     return jsonify({"msg": result})
+
 
 @app.route('/rag/drop/<db_name>', methods=['DELETE'])
 def drop_rag(db_name):
@@ -50,6 +55,7 @@ def drop_rag(db_name):
     rag_chroma = RAG_Chroma(db_path)
     res = rag_chroma.drop()
     return jsonify({"ok": res})
+
 
 @app.route('/rag/query', methods=['POST'])
 def query_rag():
@@ -61,6 +67,7 @@ def query_rag():
     docs = rag_chroma.query(query, top_k)
     return jsonify({"docs": docs})
 
+
 @app.route('/rag/insert', methods=['POST'])
 def insert_rag():
     data = request.get_json()
@@ -68,7 +75,8 @@ def insert_rag():
     db_path = str(project_path / Path("chroma_db") / db_name)
     rag_chroma = RAG_Chroma(db_path)
     rag_chroma.insert(str(uploaded_file_path / db_name))
-    
+
+
 @app.route('/rag/select', methods=['GET'])
 def get_texts_rag():
     print(request)
@@ -81,6 +89,7 @@ def get_texts_rag():
     results = rag_chroma.select(keyword=keyword, limit=limit)
     print("results", results)
     return results
+
 
 @app.route('/rag/getDbList', methods=['GET'])
 def get_rag_db_list():
@@ -96,6 +105,7 @@ def get_rag_db_list():
                     directories_with_subdirs.append(dir_name)
             break  # 只检查db_directory下的直接子目录
     return jsonify(directories_with_subdirs)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

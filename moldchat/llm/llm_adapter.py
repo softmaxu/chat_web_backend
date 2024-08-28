@@ -79,17 +79,21 @@ class RAG_Chroma:
         return False
 
 class LLM_Adapter:
-    def __init__(self, model_dir, model_name, system_msg, rag_prompt, rag_db_dir) -> None:
+    def __init__(self, model_dir, model_name, system_msg, rag_prompt, rag_db_dir, quantize=False) -> None:
         self.model_dir=model_dir
         self.model_name=model_name
         self.model_path=os.path.join(model_dir,model_name)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, device_map="cuda:0", 
                               trust_remote_code=True, torch_dtype=torch.float16, )
         # 如果不量化，在这里填上device_map
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path, 
+        if quantize:
+            self.model = AutoModelForCausalLM.from_pretrained(self.model_path, 
                               trust_remote_code=True, torch_dtype=torch.float16,)
+            self.model = self.model.quantize(8).cuda()  # 使用量化删掉device_map
+        else:
+            self.model = AutoModelForCausalLM.from_pretrained(self.model_path, 
+                device_map="cuda:0", trust_remote_code=True, torch_dtype=torch.float16,)
         self.model.generation_config = GenerationConfig.from_pretrained(self.model_path)
-        self.model = self.model.quantize(8).cuda()  # 使用量化删掉device_map
         self.system_msg=system_msg
         self.rag_prompt=rag_prompt
         self.rag_db_directory=rag_db_dir
